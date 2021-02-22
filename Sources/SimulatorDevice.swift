@@ -74,7 +74,7 @@ extension SimulatorDevice {
     
     /// Bring this simulator device into the foreground.
     ///
-    /// This launches the iOS Simulator app that is bundled with the Xcode with this simulator device as the active device.
+    /// This launches the Simulator app that is bundled with Xcode, with this simulator device being set as the current active device.
     public func foreground() throws {
         let task = Process.Task(executableURL: URL(fileURLWithPath: "/usr/bin/open"), arguments: ["-a", "Simulator", "--args", "-CurrentDeviceUDID", id.uuidString])
         
@@ -104,7 +104,7 @@ extension SimulatorDevice {
         
         let task = Process.Task(
             executableURL: URL(fileURLWithPath: "/usr/bin/xcrun"),
-            arguments: ["simctl", "io", id.uuidString, "screenshot", temporaryDirectoryPath.stringValue]
+            arguments: ["simctl", "io", id.uuidString, "screenshot", temporaryFilePath.stringValue]
         )
         
         task.start()
