@@ -22,14 +22,14 @@ The goal of this framework is to provide a safe and idiomatic way to control the
 Almost all functions on `SimulatorDevice` are synchronous, blocking and throwing.
 
 #### List all available simulators
-```
+```swift
 import SimulatorKit
 
 print(try! SimulatorDevice.all())
 ```
 
 #### Boot a simulator
-```
+```swift
 import SimulatorKit
 
 let iphoneSimulator = try SimulatorDevice.all().first(where: { $0.name.contains("iPhone") })!
@@ -38,7 +38,7 @@ try iphoneSimulator.boot()
 ```
 
 #### Take a screenshot of a simulator
-```
+```swift
 import SimulatorKit
 
 let iphoneSimulator = try SimulatorDevice.all().first(where: { $0.name.contains("iPhone") })!
