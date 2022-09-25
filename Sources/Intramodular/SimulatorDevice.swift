@@ -31,33 +31,34 @@ public struct SimulatorDevice: Identifiable, Hashable {
 }
 
 extension SimulatorDevice {
+    private static var handle: POSIXDynamicLibraryHandle?
+    
     /// Get a list of all available simulator devices.
-    public static func all() throws -> [Self] {
+    public static func all() async throws -> [Self] {
         if handle == nil {
             handle = try POSIXDynamicLibraryHandle.open(at: "/Library/Developer/PrivateFrameworks/CoreSimulator.framework/CoreSimulator")
         }
         
         let task = Process.Task(executableURL: URL(fileURLWithPath: "/usr/bin/xcode-select"), arguments: ["-p"])
         
-        let output = task.standardOutputAndErrorLinesPublisher
+        let output = try await task
+            .standardOutputAndErrorLinesPublisher
             .tryMap({ try $0.leftValue.unwrap() })
             .timeout(5.0, scheduler: DispatchQueue.global(qos: .userInitiated))
             .first()
-            .subscribeAndWaitUntilDone()
+            .output()
         
         return unsafeBitCast(NSClassFromString("SimServiceContext"), to: SimServiceContextProtocol.Type.self)
-            .sharedServiceContext(forDeveloperDir: try output.get(), error: nil)
+            .sharedServiceContext(forDeveloperDir: output, error: nil)
             .defaultDeviceSetWithError(nil)
             .devices
             .map({ SimulatorDevice(device: unsafeBitCast($0, to: SimDeviceProtocol.self)) })
     }
-    
-    private static var handle: POSIXDynamicLibraryHandle?
 }
 
 extension SimulatorDevice {
     /// Boots up the simulator, if not booted already.
-    public func boot() throws {
+    public func boot() async throws {
         guard state != .booted else {
             return
         }
@@ -69,22 +70,25 @@ extension SimulatorDevice {
         
         task.start()
         
-        try task.waitUntilExit()
+        try await task.value
     }
     
     /// Bring this simulator device into the foreground.
     ///
     /// This launches the Simulator app that is bundled with Xcode, with this simulator device being set as the current active device.
-    public func foreground() throws {
-        let task = Process.Task(executableURL: URL(fileURLWithPath: "/usr/bin/open"), arguments: ["-a", "Simulator", "--args", "-CurrentDeviceUDID", id.uuidString])
+    public func foreground() async throws {
+        let task = Process.Task(
+            executableURL: URL(fileURLWithPath: "/usr/bin/open"),
+            arguments: ["-a", "Simulator", "--args", "-CurrentDeviceUDID", id.uuidString]
+        )
         
         task.start()
         
-        try task.waitUntilExit()
+        try await task.value
     }
     
     /// Copy and install an ".app" from a given location.
-    public func installApp(from url: URL) throws {
+    public func installApp(from url: URL) async throws {
         let task = Process.Task(
             executableURL: URL(fileURLWithPath: "/usr/bin/xcrun"),
             arguments: ["simctl", "install", id.uuidString, url.path]
@@ -92,13 +96,13 @@ extension SimulatorDevice {
         
         task.start()
         
-        try task.waitUntilExit()
+        try await task.value
     }
     
     /// Screenshot this simulator device.
     ///
     /// Note: The screenshot is taken immediately, which may be undesirable if called right after an app is launched via `Simulator/launchApp(withIdentifier:)` because it would capture the home screen -> app animation rather than a screenshot of the app fully launched and loaded.
-    public func screenshot() throws -> Data {
+    public func screenshot() async throws -> Data {
         let temporaryDirectoryPath = FilePath.temporaryDirectory()
         let temporaryFilePath = temporaryDirectoryPath + "screenshot.jpg"
         
@@ -109,7 +113,7 @@ extension SimulatorDevice {
         
         task.start()
         
-        try task.waitUntilExit()
+        try await task.value
         
         let data = try Data(contentsOf: URL(temporaryFilePath).unwrap())
         
@@ -119,7 +123,7 @@ extension SimulatorDevice {
     }
     
     /// Launches an installed app, identified by the given app identifier.
-    public func launchApp(withIdentifier appIdentifier: String)  throws{
+    public func launchApp(withIdentifier appIdentifier: String) async throws {
         let task = Process.Task(
             executableURL: URL(fileURLWithPath: "/usr/bin/xcrun"),
             arguments: ["simctl", "launch", id.uuidString, appIdentifier]
@@ -127,7 +131,7 @@ extension SimulatorDevice {
         
         task.start()
         
-        try task.waitUntilExit()
+        try await task.value
     }
 }
 

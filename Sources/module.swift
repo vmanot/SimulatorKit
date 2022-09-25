@@ -22,18 +22,18 @@ import Swift
     var name: String { get }
     var runtime: SimDeviceRuntimeProtocol? { get set }
     var state: SimDeviceState { get set }
-    
+
     func sendPushNotification(forBundleID bundleID: String, jsonPayload json: [AnyHashable : Any]) throws
 }
 
 @objc protocol SimDeviceSetProtocol: NSObjectProtocol {
     var devices: [AnyObject] { get }
-    
+
     func registerNotificationHandler(_ handler: @escaping ([AnyHashable: Any]) -> Void) -> UInt64
 }
 
 @objc protocol SimServiceContextProtocol: NSObjectProtocol {
     static func sharedServiceContext(forDeveloperDir developerDirectory: String, error: NSErrorPointer) -> Self
-    
+
     func defaultDeviceSetWithError(_ error: NSErrorPointer) -> SimDeviceSetProtocol
 }
