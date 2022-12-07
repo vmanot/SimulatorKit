@@ -19,13 +19,12 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/vmanot/Filesystem.git", .branch("master")),
         .package(url: "https://github.com/vmanot/Merge.git", .branch("master")),
-        .package(url: "https://github.com/vmanot/POSIX.git", .branch("master")),
         .package(url: "https://github.com/vmanot/Runtime.git", .branch("master")),
     ],
     targets: [
         .target(
             name: "SimulatorKit",
-            dependencies: ["Filesystem", "Merge", "POSIX", "Runtime"],
+            dependencies: ["Filesystem", "Merge", "Runtime"],
             path: "Sources"
         ),
         .testTarget(
