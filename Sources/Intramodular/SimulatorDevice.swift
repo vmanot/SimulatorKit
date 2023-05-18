@@ -135,7 +135,7 @@ extension SimulatorDevice {
     }
 }
 
-// MARK: - Conformances -
+// MARK: - Conformances
 
 extension SimulatorDevice {
     public var description: String {
