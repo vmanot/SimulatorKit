@@ -4,10 +4,11 @@
 
 #if os(macOS)
 
-import Filesystem
+import CorePersistence
 import Merge
 import POSIX
 import Swallow
+import System
 
 /// A struct representing a simulator device.
 public struct SimulatorDevice: Identifiable, Hashable {
